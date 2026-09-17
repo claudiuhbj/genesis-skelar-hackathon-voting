@@ -28,6 +28,7 @@ export class StorageService {
       try {
         this.firestore = new Firestore({
           projectId: process.env.GOOGLE_CLOUD_PROJECT,
+          ignoreUndefinedProperties: true,
         });
         this.useFirestore = true;
         console.log(`🔥 Firestore connected for project: ${process.env.GOOGLE_CLOUD_PROJECT}`);
@@ -75,7 +76,8 @@ export class StorageService {
       }
       // If not found in Firestore yet, seed Firestore with current initial state
       this.ensureEnvAdminsAndClientId(this.db);
-      await docRef.set(this.db);
+      const cleanInitial = JSON.parse(JSON.stringify(this.db));
+      await docRef.set(cleanInitial);
       console.log('🌱 Seeded initial state to Firestore (genesis_skelar_hackathon/master_state)');
     } catch (err) {
       console.error('⚠️ Failed to load/seed state from Firestore on startup:', err);
@@ -111,11 +113,16 @@ export class StorageService {
     }
 
     if (syncToFirestore && this.useFirestore && this.firestore) {
-      this.firestore
-        .collection('genesis_skelar_hackathon')
-        .doc('master_state')
-        .set(data)
-        .catch((err) => console.error('Firestore background sync error:', err));
+      try {
+        const cleanData = JSON.parse(JSON.stringify(data));
+        this.firestore
+          .collection('genesis_skelar_hackathon')
+          .doc('master_state')
+          .set(cleanData)
+          .catch((err) => console.error('Firestore background sync error:', err));
+      } catch (err) {
+        console.error('Firestore synchronous serialize error:', err);
+      }
     }
   }
 

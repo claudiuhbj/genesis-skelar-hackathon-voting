@@ -62,24 +62,33 @@ export const App: React.FC = () => {
     'ARENA'
   );
   const [showTeamModalOverride, setShowTeamModalOverride] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(
+    () => Boolean(localStorage.getItem('hackathon_active_email'))
+  );
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPortalState = useCallback(async (emailToFetch: string = activeEmail) => {
     if (!emailToFetch) {
       setLoading(false);
       return;
     }
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/state', {
         headers: {
           'x-user-email': emailToFetch,
         },
       });
-      if (!res.ok) throw new Error('Failed to load state');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error (${res.status})`);
+      }
       const data = (await res.json()) as PortalStateResponse;
       setState(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading portal state:', err);
+      setError(err.message || 'Failed to load portal state');
     } finally {
       setLoading(false);
     }
@@ -88,38 +97,60 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!isLoggedOut && activeEmail) {
       fetchPortalState(activeEmail);
+    } else {
+      setLoading(false);
     }
   }, [activeEmail, isLoggedOut, fetchPortalState]);
 
   const handlePersonaSwitch = async (email: string, name?: string) => {
-    await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name }),
-    });
-    localStorage.setItem('hackathon_active_email', email);
-    setActiveEmail(email);
-    setIsLoggedOut(false);
-    await fetchPortalState(email);
-  };
-
-  const handleGoogleOAuthLogin = async (credential: string) => {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || 'Google Sign-In failed');
-      return;
-    }
-    const email = data.user?.email;
-    if (email) {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Sign-in failed (${res.status})`);
+      }
       localStorage.setItem('hackathon_active_email', email);
       setActiveEmail(email);
       setIsLoggedOut(false);
       await fetchPortalState(email);
+    } catch (err: any) {
+      console.error('Login failed:', err);
+      setError(err.message || 'Authentication failed');
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleOAuthLogin = async (credential: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Google Sign-In failed');
+        setLoading(false);
+        return;
+      }
+      const email = data.user?.email;
+      if (email) {
+        localStorage.setItem('hackathon_active_email', email);
+        setActiveEmail(email);
+        setIsLoggedOut(false);
+        await fetchPortalState(email);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Google Sign-In failed');
+      setLoading(false);
     }
   };
 
@@ -338,7 +369,35 @@ export const App: React.FC = () => {
     );
   }
 
-  if (loading || !state) {
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        <div
+          style={{
+            width: '36px',
+            height: '36px',
+            border: '3px solid rgba(56, 189, 248, 0.2)',
+            borderTopColor: '#38bdf8',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        <div>Loading Genesis × Skelar Hackathon Voting Portal...</div>
+      </div>
+    );
+  }
+
+  if (!state) {
     return (
       <div
         style={{
@@ -346,10 +405,48 @@ export const App: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--text-secondary)',
+          padding: '1.5rem',
         }}
       >
-        Loading Genesis × Skelar Hackathon Voting Portal...
+        <div
+          style={{
+            maxWidth: '460px',
+            width: '100%',
+            background: 'rgba(15, 23, 42, 0.9)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            textAlign: 'center',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+          }}
+        >
+          <ShieldAlert size={40} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            Connection Issue
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            {error || 'Unable to load portal session state from the server.'}
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => fetchPortalState(activeEmail)}
+            >
+              Retry Connection
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                localStorage.removeItem('hackathon_active_email');
+                setActiveEmail('');
+                setIsLoggedOut(true);
+                setError(null);
+              }}
+            >
+              Return to Login
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
