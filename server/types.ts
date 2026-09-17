@@ -90,7 +90,8 @@ export type TelemetryEventType =
   | 'SELF_VOTE_BLOCKED'
   | 'AI_TRANSCRIPT_ANALYZED'
   | 'CEREMONY_REVEAL_TOGGLED'
-  | 'ROLE_UPDATED';
+  | 'ROLE_UPDATED'
+  | 'USER_DELETED';
 
 export interface TelemetryEvent {
   id: string;

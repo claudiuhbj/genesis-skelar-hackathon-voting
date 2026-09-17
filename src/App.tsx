@@ -340,6 +340,20 @@ export const App: React.FC = () => {
     await fetchPortalState(activeEmail);
   };
 
+  const handleDeleteUser = async (email: string) => {
+    const res = await fetch(`/api/admin/users/${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: {
+        'x-user-email': activeEmail,
+      },
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to delete user');
+    }
+    await fetchPortalState(activeEmail);
+  };
+
   const primaryAdminEmail =
     state?.primaryAdminEmail || state?.adminData?.config?.adminAllowlist?.[0] || 'admin@genesis.tech';
 
@@ -462,52 +476,54 @@ export const App: React.FC = () => {
 
   return (
     <div>
-      {/* Interactive Role & Persona Testing Switcher Bar */}
-      <div className="demo-switcher-bar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontWeight: 700, color: '#38bdf8' }}>
-            ⚡ Interactive Google OAuth Persona Switcher:
-          </span>
-          <span style={{ color: 'var(--text-secondary)' }}>
-            Test Admin, Special Jury, Competing Team Member & New Login Onboarding
-          </span>
+      {/* Interactive Role & Persona Testing Switcher Bar — Strictly Restricted to Admins */}
+      {currentUser.role === 'ADMIN' && (
+        <div className="demo-switcher-bar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontWeight: 700, color: '#38bdf8' }}>
+              ⚡ Admin Persona Testing Switcher:
+            </span>
+            <span style={{ color: 'var(--text-secondary)' }}>
+              Test Admin, Special Jury, Competing Team Member & New Login Onboarding
+            </span>
+          </div>
+
+          <div className="demo-persona-pills">
+            <button
+              onClick={() => handlePersonaSwitch(primaryAdminEmail)}
+              className={`persona-btn ${activeEmail === primaryAdminEmail ? 'active' : ''}`}
+            >
+              🛠️ Admin (Organizer - Full Telemetry)
+            </button>
+
+            <button
+              onClick={() => handlePersonaSwitch('viktor.jury@skelar.tech')}
+              className={`persona-btn ${activeEmail === 'viktor.jury@skelar.tech' ? 'active' : ''}`}
+            >
+              ⚖️ Special Jury (Viktor - Skelar CEO)
+            </button>
+
+            <button
+              onClick={() => handlePersonaSwitch('dmytro.k@skelar.tech')}
+              className={`persona-btn ${activeEmail === 'dmytro.k@skelar.tech' ? 'active' : ''}`}
+            >
+              🚀 Team NeuralPulse Member (Self-Vote Blocked)
+            </button>
+
+            <button
+              onClick={handleSimulateFreshGoogleLogin}
+              className="persona-btn"
+              style={{
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#34d399',
+                borderColor: 'rgba(16, 185, 129, 0.35)',
+              }}
+            >
+              <LogIn size={13} /> + Simulate New Google Login (Test Team Modal)
+            </button>
+          </div>
         </div>
-
-        <div className="demo-persona-pills">
-          <button
-            onClick={() => handlePersonaSwitch(primaryAdminEmail)}
-            className={`persona-btn ${activeEmail === primaryAdminEmail ? 'active' : ''}`}
-          >
-            🛠️ Admin (Organizer - Full Telemetry)
-          </button>
-
-          <button
-            onClick={() => handlePersonaSwitch('viktor.jury@skelar.tech')}
-            className={`persona-btn ${activeEmail === 'viktor.jury@skelar.tech' ? 'active' : ''}`}
-          >
-            ⚖️ Special Jury (Viktor - Skelar CEO)
-          </button>
-
-          <button
-            onClick={() => handlePersonaSwitch('dmytro.k@skelar.tech')}
-            className={`persona-btn ${activeEmail === 'dmytro.k@skelar.tech' ? 'active' : ''}`}
-          >
-            🚀 Team NeuralPulse Member (Self-Vote Blocked)
-          </button>
-
-          <button
-            onClick={handleSimulateFreshGoogleLogin}
-            className="persona-btn"
-            style={{
-              background: 'rgba(16, 185, 129, 0.15)',
-              color: '#34d399',
-              borderColor: 'rgba(16, 185, 129, 0.35)',
-            }}
-          >
-            <LogIn size={13} /> + Simulate New Google Login (Test Team Modal)
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Main Application Container */}
       <div className="app-container">
@@ -697,8 +713,44 @@ export const App: React.FC = () => {
             onResetDemo={handleResetDemo}
             onUpdateTeamProject={handleUpdateTeamProject}
             onDeleteTeam={handleDeleteTeam}
+            onDeleteUser={handleDeleteUser}
           />
         )}
+
+        <footer
+          style={{
+            marginTop: '3.5rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            fontSize: '0.8rem',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <div>© 2026 Genesis × Skelar Hackathon Voting Portal. All rights reserved.</div>
+          <div style={{ display: 'flex', gap: '1.25rem' }}>
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+            >
+              Terms of Service
+            </a>
+          </div>
+        </footer>
       </div>
 
       {/* Mandatory Post-Login Team Onboarding Modal */}

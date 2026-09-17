@@ -661,6 +661,38 @@ app.delete('/api/admin/teams/:teamId', (req, res) => {
   res.json({ status: 'deleted', teamId });
 });
 
+// DELETE /api/admin/users/:email - Admin deletes a user and cleans up their votes
+app.delete('/api/admin/users/:email', (req, res) => {
+  const adminUser = requireAdmin(req, res);
+  if (!adminUser) return;
+
+  const targetEmail = decodeURIComponent(req.params.email || '').trim().toLowerCase();
+  if (!targetEmail) {
+    return res.status(400).json({ error: 'User email is required.' });
+  }
+
+  if (targetEmail === adminUser.email.toLowerCase()) {
+    return res.status(400).json({ error: 'Cannot delete your own active Admin account.' });
+  }
+
+  const existingUser = storage.getUser(targetEmail);
+  if (!existingUser) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+
+  const deleted = storage.deleteUser(targetEmail);
+  if (deleted) {
+    storage.logTelemetry(
+      'USER_DELETED',
+      adminUser.email,
+      adminUser.name,
+      `Deleted user "${existingUser.name}" (${existingUser.email}) and removed their cast votes.`
+    );
+  }
+
+  res.json({ status: 'deleted', email: targetEmail });
+});
+
 // POST /api/admin/google-client-id - Save Google OAuth 2.0 Client ID dynamically
 app.post('/api/admin/google-client-id', (req, res) => {
   const adminUser = requireAdmin(req, res);
@@ -683,6 +715,185 @@ app.post('/api/admin/reset-demo', (req, res) => {
   if (!adminUser) return;
   storage.resetToSeed();
   res.json({ status: 'reset_complete' });
+});
+
+// Public OAuth Branding Collaterals: Privacy Policy (/privacy) & Terms of Service (/terms)
+app.get('/privacy', (_req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Genesis × Skelar Hackathon 2026 Voting Portal</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background-color: #090D16;
+      color: #E5E7EB;
+      line-height: 1.65;
+      margin: 0;
+      padding: 2.5rem 1.25rem;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h1 { color: #F9FAFB; font-size: 1.85rem; margin-top: 0; }
+    h2 { color: #38BDF8; font-size: 1.2rem; margin-top: 1.75rem; }
+    p, li { color: #D1D5DB; font-size: 0.95rem; }
+    a { color: #34D399; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .footer-nav {
+      margin-top: 2.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">Genesis × Skelar Hackathon 2026</span>
+    <h1>Privacy Policy</h1>
+    <p><strong>Effective Date:</strong> September 17, 2026</p>
+    <p>Welcome to the <strong>Genesis × Skelar Hackathon 2026 Voting Portal</strong> ("the Application"). This Privacy Policy explains how we collect, use, and safeguard information when you sign in and participate in hackathon project evaluation.</p>
+
+    <h2>1. Information We Collect via Google Sign-In</h2>
+    <p>When you authenticate using Google OAuth 2.0 ("Sign in with Google"), we request basic, read-only profile scopes (<code>email</code>, <code>profile</code>, and <code>openid</code>). Specifically, we receive and store:</p>
+    <ul>
+      <li><strong>Email Address:</strong> Used to uniquely identify your voter session, determine your hackathon role (Participant, Special Jury, or Organizer Admin), and prevent duplicate voting.</li>
+      <li><strong>Display Name & Profile Picture:</strong> Displayed within your session header and to hackathon administrators in the voting audit log.</li>
+      <li><strong>Team Affiliation & Rubric Votes:</strong> Your selected hackathon team (to enforce anti-self-voting rules) and the 1–5 rubric scores you submit for finalist projects.</li>
+    </ul>
+
+    <h2>2. How We Use Your Information</h2>
+    <p>Your information is used strictly for operating the Genesis × Skelar Hackathon 2026 voting and judging process:</p>
+    <ul>
+      <li>Enforcing conflict-of-interest rules so participants cannot vote for their own competing team.</li>
+      <li>Computing composite 3-Pillar scores (Participants 33.33%, Gemini AI Transcript Judge 33.33%, Special Jury 33.33%).</li>
+      <li>Providing auditability and transparency for hackathon organizers.</li>
+    </ul>
+
+    <h2>3. Data Sharing & Third Parties</h2>
+    <p>We do <strong>not</strong> sell, rent, or share your personal information or Google user data with any third-party marketers or external services. Data is stored securely in Google Cloud (Cloud Run & Firestore) strictly for the duration of the hackathon event.</p>
+
+    <h2>4. Data Retention & Deletion</h2>
+    <p>Hackathon administrators can delete any registered user profile and associated votes at any time directly from the Admin Dashboard. You may also request immediate deletion of your account and votes by contacting the hackathon organizing committee.</p>
+
+    <div class="footer-nav">
+      <a href="/">← Back to Genesis × Skelar Voting Portal</a>
+      <a href="/terms">View Terms of Service →</a>
+    </div>
+  </div>
+</body>
+</html>`);
+});
+
+app.get('/terms', (_req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — Genesis × Skelar Hackathon 2026 Voting Portal</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background-color: #090D16;
+      color: #E5E7EB;
+      line-height: 1.65;
+      margin: 0;
+      padding: 2.5rem 1.25rem;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h1 { color: #F9FAFB; font-size: 1.85rem; margin-top: 0; }
+    h2 { color: #34D399; font-size: 1.2rem; margin-top: 1.75rem; }
+    p, li { color: #D1D5DB; font-size: 0.95rem; }
+    a { color: #38BDF8; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .footer-nav {
+      margin-top: 2.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">Genesis × Skelar Hackathon 2026</span>
+    <h1>Terms of Service</h1>
+    <p><strong>Effective Date:</strong> September 17, 2026</p>
+    <p>By accessing or signing into the <strong>Genesis × Skelar Hackathon 2026 Voting Portal</strong> ("the Portal"), you agree to abide by these Terms of Service and the official hackathon voting rules.</p>
+
+    <h2>1. Eligibility & Fair Voting Integrity</h2>
+    <ul>
+      <li>Each participant, jury member, and attendee may authenticate with a single valid Google account.</li>
+      <li>Participants affiliated with a competing hackathon team are strictly prohibited from voting for their own team. You must accurately select your competing team affiliation upon initial login.</li>
+      <li>Any attempt to manipulate scores, create unauthorized duplicate accounts, or bypass voting restrictions may result in vote disqualification by the Organizer Admins.</li>
+    </ul>
+
+    <h2>2. Project Collaterals & Intellectual Property</h2>
+    <ul>
+      <li>Competing teams retain ownership of their hackathon project code, descriptions, and pitches submitted to the Portal.</li>
+      <li>By submitting team project descriptions and pitches, teams grant Genesis and Skelar a non-exclusive license to display and evaluate project details within the Hackathon Portal and ceremony presentations.</li>
+    </ul>
+
+    <h2>3. Disclaimer of Warranties</h2>
+    <p>The Portal is provided "as is" for the Genesis × Skelar Hackathon 2026 event. The organizers reserve the right to modify voting windows, adjust ceremony reveal schedules, or remove invalid user accounts at their sole discretion.</p>
+
+    <div class="footer-nav">
+      <a href="/">← Back to Genesis × Skelar Voting Portal</a>
+      <a href="/privacy">View Privacy Policy →</a>
+    </div>
+  </div>
+</body>
+</html>`);
 });
 
 // Serve static React SPA in production

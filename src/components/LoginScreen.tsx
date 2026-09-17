@@ -707,6 +707,38 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
           )}
         </div>
+
+        {/* Legal & OAuth Verification Footer */}
+        <div
+          style={{
+            marginTop: '1.75rem',
+            paddingTop: '1.1rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            fontSize: '0.78rem',
+            color: '#9CA3AF',
+          }}
+        >
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#9CA3AF', textDecoration: 'none', fontWeight: 500 }}
+          >
+            Privacy Policy
+          </a>
+          <span>•</span>
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#9CA3AF', textDecoration: 'none', fontWeight: 500 }}
+          >
+            Terms of Service
+          </a>
+        </div>
       </div>
     </div>
   );

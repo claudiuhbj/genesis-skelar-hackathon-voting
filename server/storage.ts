@@ -157,6 +157,23 @@ export class StorageService {
     return user;
   }
 
+  public deleteUser(email: string): boolean {
+    const key = email.trim().toLowerCase();
+    const existed = Boolean(this.db.users[key]);
+    if (!existed) {
+      return false;
+    }
+    delete this.db.users[key];
+    // Clean up any votes cast by this user
+    this.db.votes = this.db.votes.filter((v) => v.voterEmail.toLowerCase() !== key);
+    // Clean up any team memberEmails references
+    for (const team of this.db.teams) {
+      team.memberEmails = team.memberEmails.filter((e) => e.toLowerCase() !== key);
+    }
+    this.saveLocalDb();
+    return true;
+  }
+
   public getTeams(): Team[] {
     return this.db.teams;
   }

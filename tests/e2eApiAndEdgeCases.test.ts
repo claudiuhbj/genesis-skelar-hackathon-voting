@@ -395,4 +395,66 @@ describe('Genesis x Skelar Hackathon — Comprehensive E2E API & Edge-Case Test 
     expect(revealedState.data.leaderboard[0].finalCompositeScore).toBeGreaterThan(0);
     expect(revealedState.data.leaderboard[0].rank).toBe(1);
   });
+
+  it('7. Admin User Deletion & Vote Cleanup (DELETE /api/admin/users/:email)', async () => {
+    // Non-admin attempting to delete a user -> 403 Forbidden
+    const unauthDel = await apiReq('/api/admin/users/ephemeral.member@skelar.tech', {
+      method: 'DELETE',
+      headers: { 'x-user-email': 'dmytro.k@skelar.tech' },
+    });
+    expect(unauthDel.status).toBe(403);
+
+    // Admin attempting to delete their own active admin account -> 400 Bad Request
+    const selfDel = await apiReq('/api/admin/users/admin@genesis.tech', {
+      method: 'DELETE',
+      headers: { 'x-user-email': 'admin@genesis.tech' },
+    });
+    expect(selfDel.status).toBe(400);
+
+    // Re-assign team affiliation to ephemeral.member@skelar.tech so they can cast a vote
+    await apiReq('/api/user/select-team', {
+      method: 'POST',
+      body: {
+        email: 'ephemeral.member@skelar.tech',
+        teamId: 'SPECTATOR',
+      },
+    });
+
+    // Cast a vote from ephemeral.member@skelar.tech first
+    await apiReq('/api/votes', {
+      method: 'POST',
+      body: {
+        voterEmail: 'ephemeral.member@skelar.tech',
+        teamId: 'team-neuralpulse',
+        scores: { innovation: 5, technicalExecution: 5, businessImpact: 5, pitchQuality: 5 },
+      },
+    });
+    expect(storage.getVotes().some((v) => v.voterEmail === 'ephemeral.member@skelar.tech')).toBe(true);
+
+    // Admin deletes ephemeral.member@skelar.tech -> 200 OK
+    const adminDel = await apiReq('/api/admin/users/ephemeral.member@skelar.tech', {
+      method: 'DELETE',
+      headers: { 'x-user-email': 'admin@genesis.tech' },
+    });
+    expect(adminDel.status).toBe(200);
+    expect(adminDel.data.status).toBe('deleted');
+
+    // Verify user is removed from storage and their votes are purged
+    expect(storage.getUser('ephemeral.member@skelar.tech')).toBeUndefined();
+    expect(storage.getVotes().some((v) => v.voterEmail === 'ephemeral.member@skelar.tech')).toBe(false);
+  });
+
+  it('8. OAuth Public Branding Collaterals (GET /privacy & GET /terms)', async () => {
+    const privRes = await fetch(`${baseUrl}/privacy`);
+    expect(privRes.status).toBe(200);
+    const privHtml = await privRes.text();
+    expect(privHtml).toContain('Privacy Policy');
+    expect(privHtml).toContain('Genesis × Skelar Hackathon 2026');
+
+    const termsRes = await fetch(`${baseUrl}/terms`);
+    expect(termsRes.status).toBe(200);
+    const termsHtml = await termsRes.text();
+    expect(termsHtml).toContain('Terms of Service');
+    expect(termsHtml).toContain('Genesis × Skelar Hackathon 2026');
+  });
 });

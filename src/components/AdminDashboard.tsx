@@ -53,6 +53,7 @@ interface AdminDashboardProps {
     }
   ) => Promise<void>;
   onDeleteTeam?: (teamId: string) => Promise<void>;
+  onDeleteUser?: (email: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
 }
 
@@ -70,6 +71,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onCreateTeam,
   onUpdateTeamProject,
   onDeleteTeam,
+  onDeleteUser,
   onResetDemo,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<
@@ -87,6 +89,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [confirmDeleteTeamId, setConfirmDeleteTeamId] = useState<string | null>(null);
   const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null);
 
+  // User Delete Confirmation State
+  const [confirmDeleteUserEmail, setConfirmDeleteUserEmail] = useState<string | null>(null);
+  const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null);
+
   const handleConfirmDelete = async (teamId: string) => {
     if (!onDeleteTeam) return;
     setDeletingTeamId(teamId);
@@ -95,6 +101,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setConfirmDeleteTeamId(null);
     } finally {
       setDeletingTeamId(null);
+    }
+  };
+
+  const handleConfirmDeleteUser = async (email: string) => {
+    if (!onDeleteUser) return;
+    setDeletingUserEmail(email);
+    try {
+      await onDeleteUser(email);
+      setConfirmDeleteUserEmail(null);
+    } finally {
+      setDeletingUserEmail(null);
     }
   };
 
@@ -413,23 +430,95 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <strong>{userVotes.length}</strong> votes cast
                         </td>
                         <td>
-                          <button
-                            className="btn btn-secondary"
-                            style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
-                            onClick={() =>
-                              onOverrideUser(u.email, u.teamId, u.role, u.teamLocked)
-                            }
-                          >
-                            {u.teamLocked ? (
-                              <>
-                                <Unlock size={13} /> Unlock Team Choice
-                              </>
-                            ) : (
-                              <>
-                                <Lock size={13} /> Lock Team Choice
-                              </>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                            <button
+                              className="btn btn-secondary"
+                              style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
+                              onClick={() =>
+                                onOverrideUser(u.email, u.teamId, u.role, u.teamLocked)
+                              }
+                            >
+                              {u.teamLocked ? (
+                                <>
+                                  <Unlock size={13} /> Unlock Team
+                                </>
+                              ) : (
+                                <>
+                                  <Lock size={13} /> Lock Team
+                                </>
+                              )}
+                            </button>
+
+                            {onDeleteUser && u.email.toLowerCase() !== currentUser.email.toLowerCase() && (
+                              confirmDeleteUserEmail === u.email ? (
+                                <div
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.35rem',
+                                    background: 'rgba(239, 68, 68, 0.12)',
+                                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                                    borderRadius: '6px',
+                                    padding: '0.2rem 0.45rem',
+                                  }}
+                                >
+                                  <span style={{ fontSize: '0.73rem', color: '#fca5a5', fontWeight: 600 }}>
+                                    Delete User?
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={deletingUserEmail === u.email}
+                                    onClick={() => handleConfirmDeleteUser(u.email)}
+                                    style={{
+                                      background: '#ef4444',
+                                      color: '#fff',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      padding: '0.2rem 0.45rem',
+                                      fontSize: '0.72rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    {deletingUserEmail === u.email ? '...' : 'Yes'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDeleteUserEmail(null)}
+                                    style={{
+                                      background: 'transparent',
+                                      color: '#9ca3af',
+                                      border: 'none',
+                                      padding: '0.2rem 0.35rem',
+                                      fontSize: '0.72rem',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  title={`Delete user ${u.email}`}
+                                  onClick={() => setConfirmDeleteUserEmail(u.email)}
+                                  className="btn btn-secondary"
+                                  style={{
+                                    padding: '0.35rem 0.6rem',
+                                    fontSize: '0.75rem',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    borderColor: 'rgba(239, 68, 68, 0.3)',
+                                    color: '#f87171',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                  }}
+                                >
+                                  <Trash2 size={13} /> Delete
+                                </button>
+                              )
                             )}
-                          </button>
+                          </div>
                         </td>
                       </tr>
                     );
