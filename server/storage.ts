@@ -24,14 +24,20 @@ export class StorageService {
     this.db = this.loadLocalDb(false);
     this.ensureEnvAdminsAndClientId(this.db);
 
-    if (process.env.USE_FIRESTORE === 'true' && process.env.GOOGLE_CLOUD_PROJECT) {
+    const isCloudRun = Boolean(process.env.K_SERVICE);
+    const shouldUseFirestore =
+      process.env.USE_FIRESTORE !== 'false' &&
+      (process.env.USE_FIRESTORE === 'true' || isCloudRun);
+
+    if (shouldUseFirestore) {
       try {
+        const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'claudiu-test-project-1';
         this.firestore = new Firestore({
-          projectId: process.env.GOOGLE_CLOUD_PROJECT,
+          projectId,
           ignoreUndefinedProperties: true,
         });
         this.useFirestore = true;
-        console.log(`🔥 Firestore connected for project: ${process.env.GOOGLE_CLOUD_PROJECT}`);
+        console.log(`🔥 Firestore connected for project: ${projectId}`);
       } catch (err) {
         console.warn('⚠️ Firestore initialization failed, using local JSON DB fallback:', err);
       }

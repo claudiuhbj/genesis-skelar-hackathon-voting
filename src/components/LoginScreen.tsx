@@ -84,6 +84,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   useEffect(() => {
     if (!googleClientId || !googleButtonContainerRef.current) return;
 
+    let attempts = 0;
+    let timer: any = null;
+
     const initGsi = () => {
       if (window.google?.accounts?.id && googleButtonContainerRef.current) {
         window.google.accounts.id.initialize({
@@ -107,12 +110,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           text: 'continue_with',
           shape: 'rectangular',
         });
+      } else if (attempts < 20) {
+        attempts += 1;
+        timer = setTimeout(initGsi, 150);
       }
     };
 
-    // Wait briefly if script is still loading
-    const timer = setTimeout(initGsi, 150);
-    return () => clearTimeout(timer);
+    initGsi();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [googleClientId, onLoginWithGoogleCredential]);
 
   const handleFallbackSubmit = async (e: React.FormEvent) => {
@@ -251,7 +258,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* PRIMARY LOGIN: Sign in with Google */}
         <div style={{ marginBottom: '1.5rem' }}>
           {googleClientId ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
               <div
                 ref={googleButtonContainerRef}
                 style={{
@@ -265,23 +272,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={() => setShowOAuthSetupModal(true)}
                 style={{
-                  width: '100%',
-                  padding: '0.65rem 0.9rem',
-                  borderRadius: '8px',
-                  background: 'rgba(59, 130, 246, 0.12)',
-                  border: '1px solid rgba(59, 130, 246, 0.35)',
-                  color: '#93C5FD',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#6B7280',
+                  fontSize: '0.74rem',
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.45rem',
+                  gap: '0.35rem',
+                  marginTop: '0.2rem',
                 }}
               >
-                <KeyRound size={14} />
-                <span>Getting 403 org_internal? Click here for Instant Google Sign-In or OAuth Settings</span>
+                <KeyRound size={12} />
+                <span>Admin: Configure Google OAuth Client ID</span>
               </button>
             </div>
           ) : (
