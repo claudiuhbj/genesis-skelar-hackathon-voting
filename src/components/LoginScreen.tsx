@@ -251,7 +251,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* PRIMARY LOGIN: Sign in with Google */}
         <div style={{ marginBottom: '1.5rem' }}>
           {googleClientId ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
               <div
                 ref={googleButtonContainerRef}
                 style={{
@@ -265,15 +265,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={() => setShowOAuthSetupModal(true)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#6B7280',
-                  fontSize: '0.73rem',
+                  width: '100%',
+                  padding: '0.65rem 0.9rem',
+                  borderRadius: '8px',
+                  background: 'rgba(59, 130, 246, 0.12)',
+                  border: '1px solid rgba(59, 130, 246, 0.35)',
+                  color: '#93C5FD',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  textDecoration: 'underline',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.45rem',
                 }}
               >
-                OAuth Client ID Settings
+                <KeyRound size={14} />
+                <span>Getting 403 org_internal? Click here for Instant Google Sign-In or OAuth Settings</span>
               </button>
             </div>
           ) : (
@@ -423,9 +431,33 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               >
                 <KeyRound size={13} color="#F59E0B" /> Admin: Connect GCP OAuth 2.0 Web Client ID
               </div>
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  borderRadius: '8px',
+                  padding: '0.65rem 0.8rem',
+                  marginBottom: '0.65rem',
+                  fontSize: '0.73rem',
+                  color: '#FDE68A',
+                  lineHeight: 1.45,
+                }}
+              >
+                <b>⚠️ Getting Error 403: org_internal?</b> Your GCP project&apos;s OAuth Consent Screen is currently set to <code>Internal</code> (restricted to <code>@hobjila.altostrat.com</code>).
+                <br />
+                <b>Fix in 10 seconds:</b> Open{' '}
+                <a
+                  href="https://console.cloud.google.com/apis/credentials/consent?project=claudiu-test-project-1"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: '#60A5FA', fontWeight: 700, textDecoration: 'underline' }}
+                >
+                  GCP OAuth Consent Screen (Audience) <ExternalLink size={10} style={{ display: 'inline' }} />
+                </a>
+                {' '}→ Under <b>User type</b>, click <b>MAKE EXTERNAL</b> → Click <b>PUBLISH APP</b>.
+              </div>
               <p style={{ fontSize: '0.72rem', color: '#9CA3AF', lineHeight: 1.45, marginBottom: '0.6rem' }}>
-                To enable the popup Google OAuth button in GCP project{' '}
-                <code style={{ color: '#E5E7EB' }}>claudiu-test-project-1</code>, go to{' '}
+                Or manage your Web Client ID in{' '}
                 <a
                   href="https://console.cloud.google.com/apis/credentials?project=claudiu-test-project-1"
                   target="_blank"
@@ -434,8 +466,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 >
                   GCP Credentials <ExternalLink size={10} style={{ display: 'inline' }} />
                 </a>
-                , create an <b>OAuth client ID (Web application)</b>, add this app&apos;s URL under{' '}
-                <b>Authorized JavaScript origins</b>, and paste the Client ID below:
+                :
               </p>
               <form onSubmit={handleSaveGoogleClientId} style={{ display: 'flex', gap: '0.45rem' }}>
                 <input
