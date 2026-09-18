@@ -476,76 +476,15 @@ export const App: React.FC = () => {
 
   return (
     <div>
-      {/* Interactive Role & Persona Testing Switcher Bar — Strictly Restricted to Admins */}
-      {currentUser.role === 'ADMIN' && (
-        <div className="demo-switcher-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontWeight: 700, color: '#38bdf8' }}>
-              ⚡ Admin Persona Testing Switcher:
-            </span>
-            <span style={{ color: 'var(--text-secondary)' }}>
-              Test Admin, Special Jury, Competing Team Member & New Login Onboarding
-            </span>
-          </div>
-
-          <div className="demo-persona-pills">
-            <button
-              onClick={() => handlePersonaSwitch(primaryAdminEmail)}
-              className={`persona-btn ${activeEmail === primaryAdminEmail ? 'active' : ''}`}
-            >
-              🛠️ Admin (Organizer - Full Telemetry)
-            </button>
-
-            <button
-              onClick={() => handlePersonaSwitch('viktor.jury@skelar.tech')}
-              className={`persona-btn ${activeEmail === 'viktor.jury@skelar.tech' ? 'active' : ''}`}
-            >
-              ⚖️ Special Jury (Viktor - Skelar CEO)
-            </button>
-
-            <button
-              onClick={() => handlePersonaSwitch('dmytro.k@skelar.tech')}
-              className={`persona-btn ${activeEmail === 'dmytro.k@skelar.tech' ? 'active' : ''}`}
-            >
-              🚀 Team NeuralPulse Member (Self-Vote Blocked)
-            </button>
-
-            <button
-              onClick={handleSimulateFreshGoogleLogin}
-              className="persona-btn"
-              style={{
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: '#34d399',
-                borderColor: 'rgba(16, 185, 129, 0.35)',
-              }}
-            >
-              <LogIn size={13} /> + Simulate New Google Login (Test Team Modal)
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Main Application Container */}
       <div className="app-container">
         <header className="navbar">
           <div className="brand-group">
             <div className="brand-logo">G×S</div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h1 style={{ fontSize: '1.35rem', fontWeight: 700 }}>
-                  Genesis × Skelar Hackathon 2026
-                </h1>
-                <span
-                  className={`badge ${
-                    ceremonyRevealed ? 'badge-participant' : 'badge-jury'
-                  }`}
-                >
-                  {ceremonyRevealed ? '🏆 Ceremony Revealed' : '🔒 Scores Sealed'}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Public Voting & Gemini 3.8 Flash Master Transcript AI Judge Portal
-              </p>
+              <h1 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                Genesis × Skelar Hackathon 2026
+              </h1>
             </div>
           </div>
 
@@ -588,7 +527,7 @@ export const App: React.FC = () => {
                   }}
                 >
                   <Lock size={11} style={{ color: '#f59e0b' }} />
-                  Team Affiliation: <strong>{userTeamName}</strong>
+                  Team: <strong>{userTeamName}</strong>
                 </div>
               </div>
             </div>
@@ -618,7 +557,7 @@ export const App: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '2rem',
+            marginBottom: '1.75rem',
             flexWrap: 'wrap',
             gap: '1rem',
           }}
@@ -628,21 +567,21 @@ export const App: React.FC = () => {
               onClick={() => setActiveTab('ARENA')}
               className={`nav-tab ${activeTab === 'ARENA' ? 'active' : ''}`}
             >
-              <LayoutGrid size={16} /> Finalist Projects & Vote ({teams.length})
+              <LayoutGrid size={16} /> Vote
             </button>
 
             <button
               onClick={() => setActiveTab('LEADERBOARD')}
               className={`nav-tab ${activeTab === 'LEADERBOARD' ? 'active' : ''}`}
             >
-              <Trophy size={16} /> Live 3-Pillar Leaderboard
+              <Trophy size={16} /> Leaderboard
             </button>
 
             <button
               onClick={() => setActiveTab('AI_JUDGE')}
               className={`nav-tab ${activeTab === 'AI_JUDGE' ? 'active' : ''}`}
             >
-              <Bot size={16} /> Pillar B: Gemini 3.8 Transcript Judge
+              <Bot size={16} /> AI Judge
             </button>
 
             {currentUser.role === 'ADMIN' && (
@@ -653,7 +592,7 @@ export const App: React.FC = () => {
                   color: activeTab === 'ADMIN' ? '#fff' : '#f87171',
                 }}
               >
-                <ShieldAlert size={16} /> Admin Telemetry & Ceremony Control
+                <ShieldAlert size={16} /> Admin
               </button>
             )}
           </div>
@@ -669,6 +608,7 @@ export const App: React.FC = () => {
             onVoteSubmitted={handleVoteSubmit}
             onUpdateTeamProject={handleUpdateTeamProject}
             onDeleteTeam={handleDeleteTeam}
+            onCreateTeam={handleCreateTeam}
           />
         )}
 
@@ -714,6 +654,9 @@ export const App: React.FC = () => {
             onUpdateTeamProject={handleUpdateTeamProject}
             onDeleteTeam={handleDeleteTeam}
             onDeleteUser={handleDeleteUser}
+            onPersonaSwitch={handlePersonaSwitch}
+            onSimulateFreshLogin={handleSimulateFreshGoogleLogin}
+            primaryAdminEmail={primaryAdminEmail}
           />
         )}
 

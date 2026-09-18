@@ -64,26 +64,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           <Lock size={36} />
         </div>
 
-        <span className="badge badge-jury" style={{ marginBottom: '0.75rem' }}>
-          CEREMONY SUSPENSE MODE ACTIVE
-        </span>
-
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.75rem' }}>
-          Final Leaderboard Sealed for Grand Ceremony Reveal
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '2rem' }}>
+          Leaderboard Sealed Until Ceremony Reveal
         </h2>
-        <p
-          style={{
-            maxWidth: '620px',
-            margin: '0 auto 2.5rem',
-            color: 'var(--text-secondary)',
-            fontSize: '1rem',
-          }}
-        >
-          Voting across all 3 pillars—<strong>Participants (33.3%)</strong>,{' '}
-          <strong>Gemini 3.8 Flash AI Judge (33.3%)</strong>, and{' '}
-          <strong>Special Jury (33.3%)</strong>—is actively being tallied. Exact 1.00–5.00 scores
-          will be unveiled live on stage!
-        </p>
 
         {/* Live Hackathon Pulse Cards */}
         <div
@@ -104,7 +87,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             }}
           >
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
-              TOTAL VOTES RECORDED
+              VOTES RECORDED
             </div>
             <div className="mono" style={{ fontSize: '2rem', fontWeight: 700, color: '#10b981' }}>
               {totalVotesCast}
@@ -120,7 +103,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             }}
           >
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
-              GEMINI 3.8 FLASH AI JUDGE
+              AI JUDGE
             </div>
             <div
               style={{
@@ -134,7 +117,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 gap: '0.4rem',
               }}
             >
-              <CheckCircle2 size={18} /> Transcript Evaluated
+              <CheckCircle2 size={18} /> Evaluated
             </div>
           </div>
 
@@ -147,7 +130,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             }}
           >
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
-              VERIFIED VOTERS ONLINE
+              REGISTERED VOTERS
             </div>
             <div className="mono" style={{ fontSize: '2rem', fontWeight: 700, color: '#f59e0b' }}>
               {totalRegisteredUsers}
@@ -163,15 +146,15 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
   return (
     <div>
-      {/* Admin Always-On Visibility Banner when Ceremony is Sealed for Public */}
-      {isAdmin && !ceremonyRevealed && (
+      {/* Compact Admin Ceremony Control Bar */}
+      {isAdmin && (
         <div
           style={{
-            background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.16), rgba(59, 130, 246, 0.16))',
-            border: '1px solid rgba(245, 158, 11, 0.4)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '12px',
-            padding: '1rem 1.25rem',
-            marginBottom: '1.75rem',
+            padding: '0.85rem 1.25rem',
+            marginBottom: '1.5rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -179,62 +162,45 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             gap: '1rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Eye size={22} style={{ color: '#f59e0b' }} />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fde68a' }}>
-                ADMIN ALWAYS-ON LIVE VISIBILITY (Public Suspense Mode Active)
-              </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                You are viewing real-time unmasked rankings & 1–5 pillar scores. Non-admin users
-                currently see the Ceremony Suspense screen.
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>
+            {ceremonyRevealed ? (
+              <>
+                <Sparkles size={16} color="#34d399" /> Public Leaderboard is Live
+              </>
+            ) : (
+              <>
+                <Eye size={16} color="#f59e0b" /> Admin Live Preview (Sealed for Public)
+              </>
+            )}
           </div>
 
           {onTriggerCeremonyReveal && (
-            <button
-              className="btn btn-gold"
-              onClick={async () => {
-                await onTriggerCeremonyReveal(true);
-                triggerCelebrationConfetti();
-              }}
-            >
-              <Trophy size={16} /> Trigger Grand Ceremony Reveal to Public
-            </button>
+            <div style={{ display: 'flex', gap: '0.6rem' }}>
+              {ceremonyRevealed ? (
+                <>
+                  <button className="btn btn-secondary" onClick={triggerCelebrationConfetti}>
+                    🎉 Confetti
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => onTriggerCeremonyReveal(false)}
+                  >
+                    <Lock size={14} /> Seal Leaderboard
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="btn btn-gold"
+                  onClick={async () => {
+                    await onTriggerCeremonyReveal(true);
+                    triggerCelebrationConfetti();
+                  }}
+                >
+                  <Trophy size={15} /> Reveal to Public
+                </button>
+              )}
+            </div>
           )}
-        </div>
-      )}
-
-      {isAdmin && ceremonyRevealed && onTriggerCeremonyReveal && (
-        <div
-          style={{
-            background: 'rgba(16, 185, 129, 0.12)',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            borderRadius: '12px',
-            padding: '0.85rem 1.25rem',
-            marginBottom: '1.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#34d399', fontWeight: 600 }}>
-            <Sparkles size={18} /> Grand Ceremony Reveal is LIVE for all public participants!
-          </div>
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <button className="btn btn-secondary" onClick={triggerCelebrationConfetti}>
-              🎉 Launch Confetti
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => onTriggerCeremonyReveal(false)}
-            >
-              <Lock size={14} /> Re-Seal Ceremony Scores
-            </button>
-          </div>
         </div>
       )}
 

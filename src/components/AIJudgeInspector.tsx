@@ -26,30 +26,19 @@ export const AIJudgeInspector: React.FC<AIJudgeInspectorProps> = ({
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '1rem',
-          marginBottom: '1.75rem',
+          marginBottom: '1.5rem',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-            <span className="badge badge-ai">
-              <Bot size={14} /> Pillar B: Automated AI Judge (33.3% Weight)
-            </span>
-          </div>
-          <h2 style={{ fontSize: '1.65rem', fontWeight: 700 }}>
-            Gemini Master Transcript Evaluation Report
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Gemini (<strong>{aiModelName}</strong>) ingested the entire hackathon finale meeting
-            transcript, discovered each team's pitch, and scored all 4 rubric criteria on the 1–5 scale.
-          </p>
-        </div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+          AI Judge Evaluations
+        </h2>
 
         <button
           className="btn btn-secondary"
           onClick={() => setShowRawTranscript(!showRawTranscript)}
         >
           <FileText size={16} />
-          {showRawTranscript ? 'Hide Master Transcript' : 'View Master Meeting Transcript'}
+          {showRawTranscript ? 'Hide Transcript' : 'View Transcript'}
         </button>
       </div>
 

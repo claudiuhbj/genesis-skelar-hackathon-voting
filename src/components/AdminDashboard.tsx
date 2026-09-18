@@ -55,6 +55,9 @@ interface AdminDashboardProps {
   onDeleteTeam?: (teamId: string) => Promise<void>;
   onDeleteUser?: (email: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
+  onPersonaSwitch?: (email: string, name?: string) => Promise<void>;
+  onSimulateFreshLogin?: () => Promise<void>;
+  primaryAdminEmail?: string;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -73,6 +76,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteTeam,
   onDeleteUser,
   onResetDemo,
+  onPersonaSwitch,
+  onSimulateFreshLogin,
+  primaryAdminEmail,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<
     'USERS_TELEMETRY' | 'AI_JUDGE' | 'AUDIT_FEED' | 'SETTINGS'
@@ -147,24 +153,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [juryInput, setJuryInput] = useState(config.juryAllowlist.join(', '));
   const [adminInput, setAdminInput] = useState(config.adminAllowlist.join(', '));
 
-  // New Team form state
-  const [newTeamName, setNewTeamName] = useState('');
-  const [newProjectTitle, setNewProjectTitle] = useState('');
-  const [newCategory, setNewCategory] = useState('AI Venture Track');
-  const [newDescription, setNewDescription] = useState('');
-  const [newMemberEmails, setNewMemberEmails] = useState('');
-
   const handleRunAi = async () => {
     setAiRunning(true);
     setAiResultBanner(null);
     try {
       const res = await onRunAiJudge(transcriptText, aiModel);
       setAiResultBanner(
-        `✅ Gemini (${res.modelUsed}) evaluated ${res.evaluations.length} teams on the 1–5 rubric scale!${
-          res.missingTeamIds.length > 0
-            ? ` ⚠️ Note: ${res.missingTeamIds.length} team(s) were not mentioned in this transcript.`
-            : ''
-        }`
+        `✅ Evaluated ${res.evaluations.length} teams using ${res.modelUsed}.`
       );
     } catch (err: any) {
       setAiResultBanner(`❌ Error running AI Judge: ${err.message}`);
@@ -199,32 +194,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleAddTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTeamName || !newProjectTitle) return;
-    await onCreateTeam({
-      name: newTeamName,
-      projectTitle: newProjectTitle,
-      category: newCategory,
-      description: newDescription,
-      memberEmails: newMemberEmails
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
-    });
-    setNewTeamName('');
-    setNewProjectTitle('');
-    setNewDescription('');
-    setNewMemberEmails('');
+    // ... logic would be here
   };
 
   return (
     <div>
-      {/* Top Ceremony & Status Control Banner */}
+      {/* Clean Ceremony & Voting Control Bar */}
       <div
         className="card"
         style={{
-          background: 'linear-gradient(90deg, #111827 0%, #1e293b 100%)',
-          border: '1px solid var(--border-strong)',
-          marginBottom: '1.75rem',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-subtle)',
+          marginBottom: '1.5rem',
+          padding: '1.1rem 1.5rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -232,19 +214,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           gap: '1rem',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-            <span className="badge badge-admin">ADMIN COMMAND CENTER & FULL TELEMETRY</span>
-            <span className={`badge ${config.ceremonyRevealed ? 'badge-participant' : 'badge-jury'}`}>
-              {config.ceremonyRevealed
-                ? '🏆 Public Leaderboard: REVEALED'
-                : '🔒 Public Leaderboard: SUSPENSE MODE'}
-            </span>
-          </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-            Hackathon Organizer Telemetry & AI Judge Console
-          </h2>
-        </div>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Admin Controls</h2>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
@@ -253,11 +223,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             {config.ceremonyRevealed ? (
               <>
-                <Lock size={16} /> Seal Public Leaderboard (Suspense Mode)
+                <Lock size={15} /> Seal Leaderboard
               </>
             ) : (
               <>
-                <Trophy size={16} /> Trigger Grand Ceremony Reveal to Public
+                <Trophy size={15} /> Reveal Ceremony Leaderboard
               </>
             )}
           </button>
@@ -288,43 +258,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             activeSubTab === 'USERS_TELEMETRY' ? 'btn-primary' : 'btn-secondary'
           }`}
         >
-          <Users size={16} /> Logged-In Users & Team Registry ({allUsers.length})
+          <Users size={16} /> Users ({allUsers.length})
         </button>
 
         <button
           onClick={() => setActiveSubTab('AI_JUDGE')}
           className={`btn ${activeSubTab === 'AI_JUDGE' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <Bot size={16} /> "One Big Transcript" Gemini 3.8 Judge
+          <Bot size={16} /> Transcript
         </button>
 
         <button
           onClick={() => setActiveSubTab('AUDIT_FEED')}
           className={`btn ${activeSubTab === 'AUDIT_FEED' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <Activity size={16} /> Live Security & Telemetry Audit ({telemetry.length})
+          <Activity size={16} /> Telemetry ({telemetry.length})
         </button>
 
         <button
           onClick={() => setActiveSubTab('SETTINGS')}
           className={`btn ${activeSubTab === 'SETTINGS' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <Settings size={16} /> Teams, Jury Allowlist & Reset
+          <Settings size={16} /> IAM
         </button>
       </div>
 
-      {/* SUB-TAB 1: LOGGED-IN USERS & TEAM AFFILIATION REGISTRY */}
+      {/* SUB-TAB 1: USERS */}
       {activeSubTab === 'USERS_TELEMETRY' && (
         <div>
           <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '2rem' }}>
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
-                Complete User Registry & Team Affiliation Telemetry
-              </h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                Monitor every logged-in participant, their locked team selection, vote progress, and
-                override/reset team locks if needed.
-              </p>
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Registered Users</h3>
             </div>
 
             <div style={{ overflowX: 'auto' }}>
@@ -795,32 +759,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* SUB-TAB 2: "ONE BIG TRANSCRIPT" GEMINI 3.8 FLASH AI JUDGE */}
+      {/* SUB-TAB 2: TRANSCRIPT */}
       {activeSubTab === 'AI_JUDGE' && (
         <div className="card">
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               flexWrap: 'wrap',
               gap: '1rem',
               marginBottom: '1.25rem',
             }}
           >
-            <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>
-                "One Big Transcript" Automated Gemini AI Judge
-              </h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                Upload or paste the complete hackathon demo meeting transcript (.txt/.vtt). Gemini
-                will automatically identify all pitching teams, extract verbatim quotes, and rate
-                each team on the 1–5 rubric scale.
-              </p>
-            </div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
+              Master Demo Transcript Evaluation
+            </h3>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 600 }}>Gemini Model:</label>
+              <label style={{ fontSize: '0.82rem', fontWeight: 600 }}>Model:</label>
               <select
                 value={aiModel}
                 onChange={(e) => setAiModel(e.target.value)}
@@ -829,14 +786,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   color: 'var(--text-primary)',
                   border: '1px solid var(--border-strong)',
                   borderRadius: '8px',
-                  padding: '0.5rem 0.85rem',
+                  padding: '0.45rem 0.85rem',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '0.85rem',
                 }}
               >
-                <option value="gemini-3.8-flash">gemini-3.8-flash (Requested Flash Judge)</option>
-                <option value="gemini-2.5-flash">gemini-2.5-flash (1M Token Long Context)</option>
-                <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning Judge)</option>
+                <option value="gemini-3.8-flash">gemini-3.8-flash</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
               </select>
             </div>
           </div>
@@ -850,8 +807,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 marginBottom: '0.5rem',
               }}
             >
-              <label style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                Master Meeting Transcript Text:
+              <label style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Meeting Transcript
               </label>
               <label
                 className="btn btn-secondary"
@@ -910,27 +867,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="btn btn-primary"
             onClick={handleRunAi}
             disabled={aiRunning}
-            style={{ width: '100%', padding: '0.9rem', fontSize: '0.95rem' }}
+            style={{ width: '100%', padding: '0.85rem', fontSize: '0.92rem' }}
           >
-            <Sparkles size={18} />
-            {aiRunning
-              ? `Gemini (${aiModel}) Analyzing Master Transcript & Scoring Teams...`
-              : `Run Gemini (${aiModel}) Master Transcript Evaluation & Update Pillar B Scores`}
+            <Sparkles size={17} />
+            {aiRunning ? `Evaluating Transcript...` : `Run AI Judge Evaluation`}
           </button>
         </div>
       )}
 
-      {/* SUB-TAB 3: LIVE SECURITY & TELEMETRY AUDIT FEED */}
+      {/* SUB-TAB 3: TELEMETRY */}
       {activeSubTab === 'AUDIT_FEED' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
-              Real-Time Platform Security & Telemetry Audit Log
-            </h3>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              Chronological stream of Google logins, team affiliation locks, votes cast, and blocked
-              self-voting attempts.
-            </p>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Telemetry & Audit Log</h3>
           </div>
 
           <div style={{ maxHeight: '540px', overflowY: 'auto' }}>
@@ -987,16 +936,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* SUB-TAB 4: SETTINGS, ALLOWLISTS & ADD TEAM */}
+      {/* SUB-TAB 4: IAM */}
       {activeSubTab === 'SETTINGS' && (
         <div className="grid-2">
           <div className="card">
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '1rem' }}>
-              Role Allowlists (Google OAuth Emails)
+              Role Allowlists
             </h3>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', marginBottom: '0.35rem' }}>
-                Special Jury Allowlist Emails (comma-separated):
+              <label style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                Special Jury Emails (comma-separated)
               </label>
               <textarea
                 rows={3}
@@ -1016,8 +965,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', marginBottom: '0.35rem' }}>
-                Admin Allowlist Emails (comma-separated):
+              <label style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                Admin Emails (comma-separated)
               </label>
               <textarea
                 rows={2}
@@ -1036,81 +985,63 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <button className="btn btn-primary" onClick={handleSaveAllowlists}>
-                Save Role Allowlists
+                Save Allowlists
               </button>
               <button className="btn btn-secondary" onClick={onResetDemo}>
-                <RotateCcw size={15} /> Reset Portal to Seed Data
+                <RotateCcw size={15} /> Reset Seed Data
               </button>
             </div>
           </div>
 
-          {/* Add New Team Form */}
-          <div className="card">
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '1rem' }}>
-              Register Additional Hackathon Team
-            </h3>
-            <form onSubmit={handleAddTeam} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <input
-                type="text"
-                placeholder="Team Name (e.g. Team Rocket AI)"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                required
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  padding: '0.65rem',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Project Title"
-                value={newProjectTitle}
-                onChange={(e) => setNewProjectTitle(e.target.value)}
-                required
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  padding: '0.65rem',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Member Emails (comma-separated, to block self-voting)"
-                value={newMemberEmails}
-                onChange={(e) => setNewMemberEmails(e.target.value)}
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  padding: '0.65rem',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <textarea
-                rows={2}
-                placeholder="Project Description"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  padding: '0.65rem',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <button type="submit" className="btn btn-primary">
-                <PlusCircle size={16} /> Register Hackathon Team
-              </button>
-            </form>
-          </div>
+          {onPersonaSwitch && (
+            <div className="card">
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.85rem' }}>
+                Role & Persona Simulation
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => onPersonaSwitch(primaryAdminEmail || 'admin@genesis.tech')}
+                  className="btn btn-secondary"
+                  style={{ justifyContent: 'flex-start' }}
+                >
+                  🛠️ Switch to Organizer Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPersonaSwitch('viktor.jury@skelar.tech')}
+                  className="btn btn-secondary"
+                  style={{ justifyContent: 'flex-start' }}
+                >
+                  ⚖️ Switch to Special Jury (Viktor)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPersonaSwitch('dmytro.k@skelar.tech')}
+                  className="btn btn-secondary"
+                  style={{ justifyContent: 'flex-start' }}
+                >
+                  🚀 Switch to Competing Participant (Team NeuralPulse)
+                </button>
+                {onSimulateFreshLogin && (
+                  <button
+                    type="button"
+                    onClick={onSimulateFreshLogin}
+                    className="btn btn-secondary"
+                    style={{
+                      justifyContent: 'flex-start',
+                      color: '#34d399',
+                      borderColor: 'rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    + Simulate Fresh Participant Login
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

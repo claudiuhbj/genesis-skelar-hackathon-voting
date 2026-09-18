@@ -12,6 +12,7 @@ import {
   Check,
   X,
   ShieldCheck,
+  PlusCircle,
 } from 'lucide-react';
 import { RubricScores1To5, Team, User, Vote } from '../../server/types.js';
 import { VoteModal } from './VoteModal.js';
@@ -31,6 +32,7 @@ interface ProjectArenaProps {
     }
   ) => Promise<void>;
   onDeleteTeam?: (teamId: string) => Promise<void>;
+  onCreateTeam?: (team: Partial<Team>) => Promise<void>;
 }
 
 export const ProjectArena: React.FC<ProjectArenaProps> = ({
@@ -41,9 +43,19 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
   onVoteSubmitted,
   onUpdateTeamProject,
   onDeleteTeam,
+  onCreateTeam,
 }) => {
   const [activeVoteTeam, setActiveVoteTeam] = useState<Team | null>(null);
-  const [expandedAiTeamId, setExpandedAiTeamId] = useState<string | null>('team-neuralpulse');
+  const [expandedAiTeamId, setExpandedAiTeamId] = useState<string | null>(null);
+
+  // Add New Team Modal State (Admin)
+  const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [newCategory, setNewCategory] = useState('AI Automation & Agents');
+  const [newDescription, setNewDescription] = useState('');
+  const [newMemberEmails, setNewMemberEmails] = useState('');
+  const [creatingTeam, setCreatingTeam] = useState(false);
 
   // Inline Editing State per Team Card
   const [inlineEditTeamId, setInlineEditTeamId] = useState<string | null>(null);
@@ -63,6 +75,31 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
   };
 
   const isAdmin = currentUser.role === 'ADMIN';
+
+  const handleCreateNewTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onCreateTeam || !newTeamName.trim() || !newProjectTitle.trim()) return;
+    setCreatingTeam(true);
+    try {
+      await onCreateTeam({
+        name: newTeamName.trim(),
+        projectTitle: newProjectTitle.trim(),
+        category: newCategory,
+        description: newDescription.trim(),
+        memberEmails: newMemberEmails
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      });
+      setNewTeamName('');
+      setNewProjectTitle('');
+      setNewDescription('');
+      setNewMemberEmails('');
+      setShowAddTeamModal(false);
+    } finally {
+      setCreatingTeam(false);
+    }
+  };
 
   const startInlineEdit = (team: Team) => {
     setInlineEditTeamId(team.id);
@@ -103,7 +140,7 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
 
   return (
     <div>
-      {/* Arena Header */}
+      {/* Clean Arena Header */}
       <div
         style={{
           display: 'flex',
@@ -111,25 +148,12 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '1rem',
-          marginBottom: '1.75rem',
+          marginBottom: '1.5rem',
         }}
       >
-        <div>
-          <h2 style={{ fontSize: '1.65rem', fontWeight: 700 }}>
-            Finalist Projects & Voting Arena
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
-            Evaluate competing projects across 4 criteria (1–5 scale). Your votes contribute to{' '}
-            <strong>
-              {currentUser.role === 'SPECIAL_JURY'
-                ? 'Pillar C (Special Jury — 33.3% Weight)'
-                : 'Pillar A (Participants — 33.3% Weight)'}
-            </strong>
-            .
-          </p>
-        </div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Finalist Projects</h2>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div
             style={{
               background: 'var(--bg-surface)',
@@ -139,12 +163,28 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
               fontSize: '0.82rem',
             }}
           >
-            Your Votes Cast:{' '}
+            Votes Cast:{' '}
             <strong className="mono" style={{ color: '#10b981' }}>
               {myVotes.length} / {teams.filter((t) => !isUserOwnTeam(t)).length}
-            </strong>{' '}
-            eligible teams
+            </strong>
           </div>
+
+          {isAdmin && onCreateTeam && (
+            <button
+              type="button"
+              onClick={() => setShowAddTeamModal(true)}
+              className="btn btn-primary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.55rem 1rem',
+                fontSize: '0.85rem',
+              }}
+            >
+              <PlusCircle size={16} /> + Add a new Team
+            </button>
+          )}
         </div>
       </div>
 
@@ -633,6 +673,215 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
           onClose={() => setActiveVoteTeam(null)}
           onSubmitVote={onVoteSubmitted}
         />
+      )}
+
+      {/* Admin "+ Add a new Team" Modal */}
+      {showAddTeamModal && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(9, 13, 22, 0.82)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowAddTeamModal(false)}
+        >
+          <div
+            className="card"
+            style={{
+              maxWidth: '520px',
+              width: '100%',
+              background: '#111827',
+              border: '1px solid var(--border-strong)',
+              borderRadius: '16px',
+              padding: '1.75rem',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.65)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Add a New Team</h3>
+              <button
+                type="button"
+                onClick={() => setShowAddTeamModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleCreateNewTeam}
+              style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}
+            >
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  Team Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Team QuantumFlow"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  className="form-input"
+                  style={{ width: '100%', padding: '0.65rem 0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  Project Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Autonomous Revenue Agent"
+                  value={newProjectTitle}
+                  onChange={(e) => setNewProjectTitle(e.target.value)}
+                  className="form-input"
+                  style={{ width: '100%', padding: '0.65rem 0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  Track / Category
+                </label>
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.88rem',
+                  }}
+                >
+                  <option>AI Automation & Agents</option>
+                  <option>Autonomous Product Analytics</option>
+                  <option>Trust, Safety & FinTech AI</option>
+                  <option>Developer Velocity & MLOps</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  Project Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Short summary of the project..."
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="form-input"
+                  style={{ width: '100%', padding: '0.65rem 0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  Team Member Emails (comma-separated, optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="member1@skelar.tech, member2@genesis.tech"
+                  value={newMemberEmails}
+                  onChange={(e) => setNewMemberEmails(e.target.value)}
+                  className="form-input"
+                  style={{ width: '100%', padding: '0.65rem 0.85rem' }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '0.65rem',
+                  marginTop: '0.5rem',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowAddTeamModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingTeam || !newTeamName.trim() || !newProjectTitle.trim()}
+                  className="btn btn-primary"
+                >
+                  <PlusCircle size={16} />
+                  {creatingTeam ? 'Creating...' : 'Create Team'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
