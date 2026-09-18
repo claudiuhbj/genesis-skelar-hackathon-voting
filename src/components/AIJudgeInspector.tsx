@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, FileText, Quote, CheckCircle2, Sparkles, UserCheck } from 'lucide-react';
+import { Bot, FileText, Quote, CheckCircle2, Sparkles, UserCheck, Flame } from 'lucide-react';
 import { Team } from '../../server/types.js';
 
 interface AIJudgeInspectorProps {
@@ -145,7 +145,7 @@ export const AIJudgeInspector: React.FC<AIJudgeInspectorProps> = ({
                   borderLeft: '3px solid #10b981',
                   padding: '0.75rem 1rem',
                   borderRadius: '0 8px 8px 0',
-                  marginBottom: '1.25rem',
+                  marginBottom: ev.aiRoast ? '0.85rem' : '1.25rem',
                   fontSize: '0.88rem',
                   fontStyle: 'italic',
                   color: '#cbd5e1',
@@ -154,6 +154,39 @@ export const AIJudgeInspector: React.FC<AIJudgeInspectorProps> = ({
                 <Quote size={14} style={{ display: 'inline', marginRight: '6px', color: '#10b981' }} />
                 "{ev.notableQuote}"
               </div>
+
+              {/* AI Judge Roast */}
+              {ev.aiRoast && (
+                <div
+                  style={{
+                    background: 'rgba(249, 115, 22, 0.08)',
+                    border: '1px solid rgba(249, 115, 22, 0.35)',
+                    borderLeft: '3px solid #f97316',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0 8px 8px 0',
+                    marginBottom: '1.25rem',
+                    fontSize: '0.88rem',
+                    color: '#fed7aa',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontWeight: 700,
+                      fontSize: '0.76rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: '#fb923c',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    <Flame size={14} /> AI Judge Roast
+                  </div>
+                  <div>{ev.aiRoast}</div>
+                </div>
+              )}
 
               {/* 4-Criteria 1-5 Score Grid */}
               <div

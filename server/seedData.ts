@@ -63,6 +63,8 @@ export const SEED_TEAMS: Team[] = [
         'Team NeuralPulse delivered a live, production-tested autonomous creative studio that closed the loop between BigQuery ROAS telemetry and generative video synthesis, proving a +34% live CTR lift during the 48-hour hackathon.',
       notableQuote:
         'During the 48-hour hackathon we connected it to a live mobile app campaign. It generated 18 variants, automatically paused 12 underperformers, and lifted click-through rate by +34% with zero human intervention.',
+      aiRoast:
+        'You built an AI that autonomously generates TikTok ads and burns marketing budget with zero human supervision—what could possibly go wrong before Monday morning standup?',
       strengths: [
         'Verified live production deployment with real mobile ad campaign ROAS lift (+34% CTR)',
         'Direct strategic alignment with Genesis & Skelar performance marketing scale ($40M+ spend)',
@@ -102,6 +104,8 @@ export const SEED_TEAMS: Team[] = [
         'SentinelPay demonstrated exceptional engineering rigor with a 38ms P99 latency at 12,000 RPS on Cloud Run, achieving a 61% chargeback reduction on 250,000 historical Skelar transactions.',
       notableQuote:
         'We benchmarked at 12,000 RPS on Cloud Run with autoscaling. Latency stayed under 38ms at P99, and our shadow test on 250,000 historical Skelar transactions reduced chargebacks by 61% while keeping false positives below 0.3%.',
+      aiRoast:
+        'Analyzing 120 behavioral signals in 38 milliseconds just to stop someone from canceling a subscription—at this point your AI knows the user is broke before their own bank does.',
       strengths: [
         'Outstanding technical benchmark (12,000 RPS at <38ms P99 latency)',
         'Validated on 250,000 real historical transactions with 61% chargeback reduction',
@@ -141,6 +145,8 @@ export const SEED_TEAMS: Team[] = [
         'DevPulse showcased a developer-favorite autonomous debugging workflow that turns production exception spikes into verified, CI-tested GitHub Pull Requests within 90 seconds.',
       notableQuote:
         'DevPulse never merges to main automatically. It runs the full CI test suite inside an isolated Cloud Build container and only alerts the human engineer with a 1-click Approve & Deploy button once all tests pass green.',
+      aiRoast:
+        'Naming your team "VibeOps" while building an AI that fixes production outages is peak 2026 energy: first you vibe-coded the bug into production, and now you vibe-coded a bot to apologize for it.',
       strengths: [
         'Safe human-in-the-loop architecture with isolated CI sandbox verification',
         'Dramatically reduces MTTR (Mean Time To Resolution) for 3 AM on-call incidents',
@@ -180,6 +186,8 @@ export const SEED_TEAMS: Team[] = [
         'PawSense combined compassionate consumer product design with clinical validation, achieving 94% triage concordance across 150 veterinary cases.',
       notableQuote:
         'We partnered with 3 licensed veterinarians who curated 150 real clinical cases. PawSense achieved 94% concordance with human vet urgency triage.',
+      aiRoast:
+        '94% veterinary concordance on a 15-second video clip is impressive, though the remaining 6% is probably Gemini diagnosing an overdramatic Golden Retriever with "severe treat deficiency."',
       strengths: [
         'Strong domain validation with 3 licensed veterinarians (94% concordance)',
         'High emotional resonance and clear consumer subscription monetization path',

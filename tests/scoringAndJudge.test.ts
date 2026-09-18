@@ -357,4 +357,78 @@ describe('Genesis x Skelar Hackathon — 1-5 Rubric & Voting TDD Suite', () => {
     // Reset back to clean seed state
     storage.resetToSeed();
   });
+
+  it('7. Team-Normalized Weighting gives a 4-member team and a 2-member team identical 1.0x bloc weight and AI Judge generates aiRoast', () => {
+    const teamTarget: Team = {
+      id: 'team-target',
+      name: 'Team Target',
+      projectTitle: 'Target AI',
+      tagline: '',
+      description: '',
+      category: '',
+      memberEmails: ['t1@x.com'],
+    };
+    const team4Members: Team = {
+      id: 'team-four',
+      name: 'Team Four',
+      projectTitle: 'Four AI',
+      tagline: '',
+      description: '',
+      category: '',
+      memberEmails: ['f1@x.com', 'f2@x.com', 'f3@x.com', 'f4@x.com'],
+    };
+    const team2Members: Team = {
+      id: 'team-two',
+      name: 'Team Two',
+      projectTitle: 'Two AI',
+      tagline: '',
+      description: '',
+      category: '',
+      memberEmails: ['w1@x.com', 'w2@x.com'],
+    };
+
+    const votes: Vote[] = [
+      // 4 members of Team Four all rate Team Target 2.00
+      ...['f1@x.com', 'f2@x.com', 'f3@x.com', 'f4@x.com'].map((email, idx) => ({
+        id: `v-four-${idx}`,
+        voterEmail: email,
+        voterName: email,
+        voterRole: 'PARTICIPANT' as const,
+        voterTeamId: 'team-four',
+        teamId: 'team-target',
+        scores: { innovation: 2, technicalExecution: 2, businessImpact: 2, pitchQuality: 2 },
+        averageScore: 2.0,
+        timestamp: new Date().toISOString(),
+      })),
+      // 2 members of Team Two both rate Team Target 5.00
+      ...['w1@x.com', 'w2@x.com'].map((email, idx) => ({
+        id: `v-two-${idx}`,
+        voterEmail: email,
+        voterName: email,
+        voterRole: 'PARTICIPANT' as const,
+        voterTeamId: 'team-two',
+        teamId: 'team-target',
+        scores: { innovation: 5, technicalExecution: 5, businessImpact: 5, pitchQuality: 5 },
+        averageScore: 5.0,
+        timestamp: new Date().toISOString(),
+      })),
+    ];
+
+    const lb = calculateLeaderboard([teamTarget, team4Members, team2Members], votes);
+    const targetEntry = lb.find((e) => e.team.id === 'team-target')!;
+
+    // Raw un-normalized average would be (2+2+2+2+5+5)/6 = 3.00.
+    // Team-normalized average is (Avg(Team Four = 2.00) + Avg(Team Two = 5.00)) / 2 = 3.50!
+    expect(targetEntry.participantAverage).toBe(3.5);
+    expect(targetEntry.participantVoteCount).toBe(6);
+
+    // Also verify AI Judge roast is populated on transcript analysis
+    const analysis = analyzeTranscriptDeterministically(
+      'Speaker (Lead): Team Target built Target AI with 50% lift live on Cloud Run.',
+      [teamTarget],
+      'gemini-3.8-flash'
+    );
+    expect(analysis.evaluations.length).toBe(1);
+    expect(analysis.evaluations[0].aiRoast).toBeTruthy();
+  });
 });

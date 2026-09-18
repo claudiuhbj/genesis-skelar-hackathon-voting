@@ -108,20 +108,59 @@ export function calculateLeaderboard(
     participants: 1 / 3,
     aiJudge: 1 / 3,
     specialJury: 1 / 3,
-  }
+  },
+  users?: User[]
 ): TeamLeaderboardEntry[] {
+  const resolveVoterBloc = (v: Vote): string => {
+    if (v.voterTeamId && v.voterTeamId !== 'SPECTATOR') {
+      return `team:${v.voterTeamId}`;
+    }
+    const emailLower = v.voterEmail.toLowerCase();
+    const matchedTeam = teams.find((t) =>
+      t.memberEmails.some((m) => m.toLowerCase() === emailLower)
+    );
+    if (matchedTeam) {
+      return `team:${matchedTeam.id}`;
+    }
+    if (users) {
+      const matchedUser = users.find((u) => u.email.toLowerCase() === emailLower);
+      if (matchedUser?.teamId && matchedUser.teamId !== 'SPECTATOR') {
+        return `team:${matchedUser.teamId}`;
+      }
+      if (matchedUser?.teamId === 'SPECTATOR') {
+        return 'bloc:SPECTATOR';
+      }
+    }
+    if (v.voterTeamId === 'SPECTATOR') {
+      return 'bloc:SPECTATOR';
+    }
+    return `voter:${emailLower}`;
+  };
+
   const entries: TeamLeaderboardEntry[] = teams.map((team) => {
     const teamVotes = votes.filter((v) => v.teamId === team.id);
     const participantVotes = teamVotes.filter((v) => v.voterRole === 'PARTICIPANT');
     const juryVotes = teamVotes.filter((v) => v.voterRole === 'SPECIAL_JURY');
 
-    const participantAverage =
-      participantVotes.length > 0
-        ? round2(
-            participantVotes.reduce((acc, v) => acc + v.averageScore, 0) /
-              participantVotes.length
-          )
-        : 0;
+    // Team-Normalized Weighting ("1 Team = 1 Equal Bloc Vote"):
+    // First average votes within each voting team bloc so a 4-member team and a 2-member team
+    // have identical 1.0x weight on the leaderboard.
+    let participantAverage = 0;
+    if (participantVotes.length > 0) {
+      const blocs = new Map<string, number[]>();
+      for (const v of participantVotes) {
+        const key = resolveVoterBloc(v);
+        const list = blocs.get(key) || [];
+        list.push(v.averageScore);
+        blocs.set(key, list);
+      }
+      const blocAverages = Array.from(blocs.values()).map(
+        (scores) => scores.reduce((sum, s) => sum + s, 0) / scores.length
+      );
+      participantAverage = round2(
+        blocAverages.reduce((sum, avg) => sum + avg, 0) / blocAverages.length
+      );
+    }
 
     const specialJuryAverage =
       juryVotes.length > 0

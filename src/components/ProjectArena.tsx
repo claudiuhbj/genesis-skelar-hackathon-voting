@@ -560,6 +560,23 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
                           "{aiEval.notableQuote}"
                         </div>
 
+                        {aiEval.aiRoast && (
+                          <div
+                            style={{
+                              background: 'rgba(249, 115, 22, 0.08)',
+                              border: '1px solid rgba(249, 115, 22, 0.3)',
+                              borderLeft: '3px solid #f97316',
+                              padding: '0.5rem 0.75rem',
+                              borderRadius: '0 6px 6px 0',
+                              color: '#fed7aa',
+                              marginBottom: '0.65rem',
+                              fontSize: '0.8rem',
+                            }}
+                          >
+                            <strong style={{ color: '#fb923c' }}>🔥 AI Roast:</strong> {aiEval.aiRoast}
+                          </div>
+                        )}
+
                         <div
                           className="mono"
                           style={{

@@ -29,6 +29,7 @@ export interface Vote {
   voterEmail: string;
   voterName: string;
   voterRole: 'PARTICIPANT' | 'SPECIAL_JURY';
+  voterTeamId?: string;
   teamId: string;
   scores: RubricScores1To5;
   averageScore: number; // 1.00 to 5.00
@@ -45,6 +46,7 @@ export interface AIEvaluation {
   averageScore: number; // 1.00 to 5.00
   executiveSummary: string;
   notableQuote: string;
+  aiRoast?: string;
   strengths: string[];
   weaknesses: string[];
   missingFromTranscript?: boolean;

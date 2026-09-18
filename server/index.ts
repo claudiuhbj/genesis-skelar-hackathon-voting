@@ -137,7 +137,8 @@ app.get('/api/state', (req, res) => {
   const teams = storage.getTeams();
   const votes = storage.getVotes();
 
-  const fullLeaderboard = calculateLeaderboard(teams, votes, config.weights);
+  const allUsers = storage.getAllUsers();
+  const fullLeaderboard = calculateLeaderboard(teams, votes, config.weights, allUsers);
   const isAdmin = currentUser.role === 'ADMIN';
   const showFullScores = isAdmin || config.ceremonyRevealed;
 
@@ -425,6 +426,7 @@ app.post('/api/votes', (req, res) => {
     voterEmail: user.email,
     voterName: user.name,
     voterRole,
+    voterTeamId: user.teamId || undefined,
     teamId: team.id,
     scores: {
       innovation: Number(scores.innovation),

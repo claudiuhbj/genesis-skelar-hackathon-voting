@@ -49,6 +49,7 @@ Your task:
    - businessImpact (1 to 5): ROI, unit economics, market readiness for Genesis/Skelar
    - pitchQuality (1 to 5): Clarity, storytelling, Q&A handling
 4. Extract the detected speaker names, a concise 2-sentence executiveSummary, 2-3 key strengths, 1-2 weaknesses, and one verbatim notableQuote directly from the transcript.
+5. Also generate aiRoast: a witty, playful, Silicon-Valley-style standup comedy roast (1-2 punchy sentences) poking fun at the team's buzzwords, demo audacity, or pitch clichés based on what they said in the transcript. Keep it funny and good-natured without lowering their objective rubric scores.
 
 MASTER TRANSCRIPT:
 """
@@ -73,6 +74,7 @@ ${masterTranscript}
             pitchQuality: { type: Type.INTEGER },
             executiveSummary: { type: Type.STRING },
             notableQuote: { type: Type.STRING },
+            aiRoast: { type: Type.STRING },
             strengths: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
@@ -93,6 +95,7 @@ ${masterTranscript}
             'pitchQuality',
             'executiveSummary',
             'notableQuote',
+            'aiRoast',
             'strengths',
             'weaknesses',
           ],
@@ -110,7 +113,7 @@ ${masterTranscript}
             config: {
               responseMimeType: 'application/json',
               responseSchema: responseSchema,
-              temperature: 0.2,
+              temperature: 0.35,
             },
           });
 
@@ -126,6 +129,7 @@ ${masterTranscript}
             pitchQuality: number;
             executiveSummary: string;
             notableQuote: string;
+            aiRoast?: string;
             strengths: string[];
             weaknesses: string[];
           }>;
@@ -147,6 +151,9 @@ ${masterTranscript}
               averageScore: computeRubricAverage(scores),
               executiveSummary: item.executiveSummary,
               notableQuote: item.notableQuote,
+              aiRoast:
+                item.aiRoast ||
+                `Pitching "${item.projectTitle}" with that much confidence on 3 hours of hackathon sleep deserves an award of its own.`,
               strengths: item.strengths || [],
               weaknesses: item.weaknesses || [],
               modelUsed: `${requestedModel} (via ${candidateModel})`,
@@ -249,6 +256,9 @@ export function analyzeTranscriptDeterministically(
         team.aiEvaluation?.executiveSummary ||
         `${team.name} presented ${team.projectTitle}, showcasing strong technical execution and clear business impact for the Genesis x Skelar ecosystem.`,
       notableQuote,
+      aiRoast:
+        team.aiEvaluation?.aiRoast ||
+        `${team.name} packed enough AI buzzwords into "${team.projectTitle}" to raise a Series A on Sand Hill Road before the demo container even finished cold-starting.`,
       strengths: team.aiEvaluation?.strengths || [
         'Clear problem-solution fit verified in pitch transcript',
         'Strong technical implementation and live Q&A response',
