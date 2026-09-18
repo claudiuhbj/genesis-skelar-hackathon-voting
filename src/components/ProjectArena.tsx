@@ -52,7 +52,6 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
   const [showAddTeamModal, setShowAddTeamModal] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
   const [newProjectTitle, setNewProjectTitle] = useState('');
-  const [newCategory, setNewCategory] = useState('AI Automation & Agents');
   const [newDescription, setNewDescription] = useState('');
   const [newMemberEmails, setNewMemberEmails] = useState('');
   const [creatingTeam, setCreatingTeam] = useState(false);
@@ -84,7 +83,6 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
       await onCreateTeam({
         name: newTeamName.trim(),
         projectTitle: newProjectTitle.trim(),
-        category: newCategory,
         description: newDescription.trim(),
         memberEmails: newMemberEmails
           .split(',')
@@ -217,28 +215,25 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
               }}
             >
               <div>
-                {/* Header Row: Category Badge + Status/Edit Controls */}
+                {/* Header Row: Team Name + Status/Edit Controls */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '0.5rem',
-                    marginBottom: '0.85rem',
+                    marginBottom: '0.55rem',
                     flexWrap: 'wrap',
                   }}
                 >
                   <span
                     style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--text-secondary)',
-                      background: 'var(--bg-surface)',
-                      padding: '0.22rem 0.65rem',
-                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      color: '#10b981',
                     }}
                   >
-                    {team.category}
+                    {team.name}
                   </span>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -479,19 +474,9 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
                   </div>
                 ) : (
                   <>
-                    <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.55rem' }}>
                       {team.projectTitle}
                     </h3>
-                    <div
-                      style={{
-                        fontSize: '0.88rem',
-                        color: '#10b981',
-                        fontWeight: 600,
-                        marginBottom: '0.75rem',
-                      }}
-                    >
-                      {team.name}
-                    </div>
 
                     <p
                       style={{
@@ -789,39 +774,7 @@ export const ProjectArena: React.FC<ProjectArenaProps> = ({
                     marginBottom: '0.3rem',
                   }}
                 >
-                  Track / Category
-                </label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: '8px',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.88rem',
-                  }}
-                >
-                  <option>AI Automation & Agents</option>
-                  <option>Autonomous Product Analytics</option>
-                  <option>Trust, Safety & FinTech AI</option>
-                  <option>Developer Velocity & MLOps</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: 'var(--text-secondary)',
-                    marginBottom: '0.3rem',
-                  }}
-                >
-                  Project Description
+                  Project Description *
                 </label>
                 <textarea
                   rows={3}

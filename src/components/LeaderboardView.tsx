@@ -363,7 +363,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         {entry.team.projectTitle}
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {entry.team.name} • {entry.team.category}
+                        {entry.team.name}
                       </div>
                     </td>
                     <td className="mono">
